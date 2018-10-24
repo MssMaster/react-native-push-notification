@@ -42,6 +42,7 @@ public class RNPushNotificationHelper {
     private static final int ONE_MINUTE = 60 * 1000;
     private static final long ONE_HOUR = 60 * ONE_MINUTE;
     private static final long ONE_DAY = 24 * ONE_HOUR;
+    Notification.Builder notification;
 
     public RNPushNotificationHelper(Application context) {
         this.context = context;
@@ -159,16 +160,25 @@ public class RNPushNotificationHelper {
                 title = context.getPackageManager().getApplicationLabel(appInfo).toString();
             }
 
-            NotificationCompat.Builder notification = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-                    .setContentTitle(title)
-                    .setTicker(bundle.getString("ticker"))
-                    .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-                    .setPriority(NotificationCompat.PRIORITY_HIGH)
-                    .setAutoCancel(bundle.getBoolean("autoCancel", true));
 
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                notification = new Notification.Builder(context)
+                        .setContentTitle(title)
+                        .setTicker(bundle.getString("ticker"))
+                        .setChannelId(NOTIFICATION_CHANNEL_ID)
+                        .setAutoCancel(bundle.getBoolean("autoCancel", true));
+            }else{
+                notification = new Notification.Builder(context)
+                        .setContentTitle(title)
+                        .setTicker(bundle.getString("ticker"))
+                        .setAutoCancel(bundle.getBoolean("autoCancel", true));
+
+            }
             String group = bundle.getString("group");
             if (group != null) {
-                notification.setGroup(group);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
+                    notification.setGroup(group);
+                }
             }
 
             notification.setContentText(bundle.getString("message"));
@@ -224,7 +234,7 @@ public class RNPushNotificationHelper {
                 bigText = bundle.getString("message");
             }
 
-            notification.setStyle(new NotificationCompat.BigTextStyle().bigText(bigText));
+            notification.setStyle(new Notification.BigTextStyle().bigText(bigText));
 
             Intent intent = new Intent(context, intentClass);
             intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
